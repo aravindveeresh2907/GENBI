@@ -137,4 +137,4 @@ def create_graph(n_clicks, user_input):
 
 # Main entry point for running the Dash app
 if __name__ == '__main__':
-    server.run(debug=True)
+    app.run_server(debug=True)
