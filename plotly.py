@@ -1,9 +1,9 @@
-import datetime
 from dash import Dash, dcc, html, Input, Output, State, callback
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage
 from langchain_groq import ChatGroq
 from dotenv import find_dotenv, load_dotenv
+from flask import Flask
 import pandas as pd
 import os
 import re
@@ -11,12 +11,15 @@ import base64
 import io
 import layout
 
-# Initialize Dash app
-app = Dash(__name__)
+#initialize flask
+flask_server = Flask(__name__)
 
 # External stylesheets for Dash app
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = Dash(__name__, external_stylesheets=external_stylesheets)
+
+# Initialize Dash app
+app = Dash(__name__, server=flask_server, external_stylesheets=external_stylesheets))
+server = app.server
 
 # Load the API key
 dotenv_path = find_dotenv()
@@ -134,4 +137,4 @@ def create_graph(n_clicks, user_input):
 
 # Main entry point for running the Dash app
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    server.run(debug=True)
