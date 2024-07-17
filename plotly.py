@@ -18,7 +18,7 @@ flask_server = Flask(__name__)
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 # Initialize Dash app
-app = Dash(__name__, server=flask_server, external_stylesheets=external_stylesheets))
+app = Dash(__name__, server=flask_server, external_stylesheets=external_stylesheets)
 server = app.server
 
 # Load the API key
