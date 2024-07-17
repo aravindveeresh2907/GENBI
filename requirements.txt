@@ -44,6 +44,7 @@ plotly==5.22.0
 pydantic==2.8.2
 pydantic_core==2.20.1
 python-dateutil==2.9.0.post0
+python-dotenv
 pytz==2024.1
 PyYAML==6.0.1
 requests==2.32.3
