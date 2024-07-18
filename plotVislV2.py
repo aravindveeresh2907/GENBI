@@ -17,9 +17,10 @@ load_dotenv(dotenv_path)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Load the dataset
-df = pd.read_excel(r'SummaryDatabyweek.xlsx') 
-print(df)              
+df = pd.read_excel(r"SummaryDatabyweek.xlsx") 
+# print(df)              
 df_5_rows = df.head()
+print(df_5_rows)
 csv_string = df_5_rows.to_string(index=False)
 print(csv_string)
 
