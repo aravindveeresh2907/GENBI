@@ -3,11 +3,13 @@ from langchain_core.messages import HumanMessage
 from langchain_groq import ChatGroq
 # from langchain_openai import ChatOpenAI
 from dash import Dash, html, dcc, callback, Output, Input, State
+from flask import Flask
 import pandas as pd
 import re
 from dotenv import find_dotenv, load_dotenv
 import os
 
+flask_server=Flask(__name__)
 # Load the API key
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
@@ -15,7 +17,7 @@ load_dotenv(dotenv_path)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Load the dataset
-df = pd.read_excel(r'static\SummaryDatabyweek.xlsx') 
+df = pd.read_excel(r'SummaryDatabyweek.xlsx') 
 print(df)              
 df_5_rows = df.head()
 csv_string = df_5_rows.to_string(index=False)
@@ -45,7 +47,9 @@ def get_fig_from_code(code):
     exec(code, {}, local_variables)
     return local_variables['fig']
 
-app = Dash(__name__)
+app = Dash(__name__, server=flask_server)
+server = app.server
+
 app.layout = html.Div([
     html.Div([
         dcc.Textarea(id='user-request', style={'width': '70%', 'height': 50, 'margin-top': 20}),
