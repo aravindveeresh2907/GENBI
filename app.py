@@ -70,12 +70,32 @@ def parse_contents(contents, filename, date):
 
     decoded = base64.b64decode(content_string)
 
-    # Save the uploaded file to the local directory
-    upload_folder = os.path.dirname(__file__)
-    saved_filepath = os.path.join(upload_folder, filename)
+    # # Save the uploaded file to the local directory
+    # upload_folder = os.path.dirname(__file__)
+    # saved_filepath = os.path.join(upload_folder, filename)
  
-    with open(saved_filepath, 'wb') as f:
-        f.write(decoded)
+    # with open(saved_filepath, 'wb') as f:
+    #     f.write(decoded)
+    try:
+        upload_folder = os.path.join(os.getenv('HOME', '/home'), 'site', 'wwwroot', 'uploads')
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part in the request'}), 400
+
+        file = request.files['file']
+
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+
+        saved_filepath = os.path.join(upload_folder, file.filename)
+        file.save(saved_filepath)
+
+        return jsonify({'message': 'File successfully uploaded', 'saved_filepath': saved_filepath}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
     
     try:
         if 'csv' in filename:
