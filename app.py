@@ -92,10 +92,10 @@ def parse_contents(contents, filename, date):
         saved_filepath = os.path.join(upload_folder, file.filename)
         file.save(saved_filepath)
 
-        return jsonify({'message': 'File successfully uploaded', 'saved_filepath': saved_filepath}), 200
+        print("file upload successfully")
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print("file is not loaded")
     
     try:
         if 'csv' in filename:
