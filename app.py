@@ -94,8 +94,8 @@ def parse_contents(contents, filename, date):
     # Store the processed data and filename
     stored_data = df
     csv_str = stored_data.to_csv(index=False)
-    stored_data.to_csv(filename)
-    stored_filename = filename
+    stored_data.to_csv('/tmp/'+filename)
+    stored_filename = '/tmp/'+filename
 
     table = dash_table.DataTable(
         data=stored_data.head(5).to_dict('records'),
