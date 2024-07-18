@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, State, callback
+from dash import Dash, dcc, html, Input, Output, State, callback, dash_table
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage
 from langchain_groq import ChatGroq
@@ -70,41 +70,14 @@ def parse_contents(contents, filename, date):
 
     decoded = base64.b64decode(content_string)
 
-    # # Save the uploaded file to the local directory
-    # upload_folder = os.path.dirname(__file__)
-    # saved_filepath = os.path.join(upload_folder, filename)
- 
-    # with open(saved_filepath, 'wb') as f:
-    #     f.write(decoded)
-    try:
-        upload_folder = os.path.join(os.getenv('HOME', '/home'), 'site', 'wwwroot', 'uploads')
-        if not os.path.exists(upload_folder):
-            os.makedirs(upload_folder)
-
-        if 'file' not in request.files:
-            print('No file part in the request')
-
-        file = request.files['file']
-
-        if file.filename == '':
-            print('No selected file')
-
-        saved_filepath = os.path.join(upload_folder, file.filename)
-        file.save(saved_filepath)
-
-        print("file upload successfully")
-
-    except Exception as e:
-        print("file is not loaded")
-    
     try:
         if 'csv' in filename:
             # Assume that the user uploaded a CSV file
-            df = pd.read_csv(saved_filepath)
+            df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
             print("file upload successfully")
         elif 'xls' in filename or 'xlsx' in filename:
             # Assume that the user uploaded an Excel file
-            df = pd.read_excel(saved_filepath,sheet_name=None)
+            df = pd.read_excel(io.BytesIO(decoded),sheet_name=None)
             combined_df = pd.concat(df.values(), ignore_index=False)
             unnamed_cols = [col for col in combined_df.columns if col.startswith("Unnamed:")]
             df = combined_df.drop(unnamed_cols, axis=1)
@@ -119,6 +92,36 @@ def parse_contents(contents, filename, date):
     stored_data = df
     csv_str = stored_data.to_csv(index=False)
     stored_filename = filename
+
+    table = dash_table.DataTable(
+        data=stored_data.head(5).to_dict('records'),
+        columns=[{'name': col, 'id': col} for col in stored_data.columns],
+        style_table={'overflowX': 'auto'},
+        style_cell={
+            'height': 'auto',
+            'minWidth': '50px', 'width': '100px', 'maxWidth': '200px',
+            'whiteSpace': 'normal',
+            'padding': '5px',
+            'font-family': 'Arial',
+            'font-size': '12px'
+        },
+        style_header={
+            'backgroundColor': 'lightgrey',
+            'fontWeight': 'bold'
+        },
+        style_data={
+            'backgroundColor': 'white',
+            'border': '1px solid lightgrey'
+        }
+    )
+
+    return html.Div([
+        html.H5(filename),
+        html.H6(datetime.datetime.fromtimestamp(date)),
+        html.Div('File uploaded and processed successfully.'),
+        table
+    ])
+ 
     
 # Callback to handle graph generation based on user input
 @callback(
