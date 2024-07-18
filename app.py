@@ -10,6 +10,7 @@ import re
 import base64
 import io
 import layout
+import datetime
 
 #initialize flask
 flask_server = Flask(__name__)
@@ -73,10 +74,12 @@ def parse_contents(contents, filename, date):
     try:
         if 'csv' in filename:
             # Assume that the user uploaded a CSV file
+            print(io.StringIO(decoded.decode('utf-8')))
             df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
             print("file upload successfully")
         elif 'xls' in filename or 'xlsx' in filename:
             # Assume that the user uploaded an Excel file
+            print(io.BytesIO(decoded))
             df = pd.read_excel(io.BytesIO(decoded),sheet_name=None)
             combined_df = pd.concat(df.values(), ignore_index=False)
             unnamed_cols = [col for col in combined_df.columns if col.startswith("Unnamed:")]
