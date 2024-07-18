@@ -77,6 +77,7 @@ def parse_contents(contents, filename, date):
             print(io.StringIO(decoded.decode('utf-8')))
             df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
             print("file upload successfully")
+            df.to_csv('/tmp/'+filename)
         elif 'xls' in filename or 'xlsx' in filename:
             # Assume that the user uploaded an Excel file
             print(io.BytesIO(decoded))
@@ -85,6 +86,7 @@ def parse_contents(contents, filename, date):
             unnamed_cols = [col for col in combined_df.columns if col.startswith("Unnamed:")]
             df = combined_df.drop(unnamed_cols, axis=1)
             print("file upload successfully")
+            df.to_excel('/tmp/'+filename)
         else:
             return html.Div(['Unsupported file format. Please upload a CSV or Excel file.'])
     except Exception as e:
@@ -94,7 +96,7 @@ def parse_contents(contents, filename, date):
     # Store the processed data and filename
     stored_data = df
     csv_str = stored_data.to_csv(index=False)
-    stored_data.to_csv('/tmp/'+filename)
+
     stored_filename = '/tmp/'+filename
 
     table = dash_table.DataTable(
