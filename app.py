@@ -139,6 +139,7 @@ def create_graph(n_clicks, user_input):
     if csv_str is None:
         return '', 'No data available to generate the graph.'
 
+    print(csv_str, stored_filename)
     # Invoke LangChain model with user input and data
     response = chain.invoke({
         "messages": [HumanMessage(content=user_input)],
@@ -154,6 +155,7 @@ def create_graph(n_clicks, user_input):
     if code_block_match:
         code_block = code_block_match.group(1).strip()
         cleaned_code = re.sub(r'(?m)^\s*fig\.show\(\)\s*$', '', code_block)
+        print(cleaned_code)
 
         # Correct column names in the generated code
         for col in stored_data.columns:
