@@ -82,12 +82,12 @@ def parse_contents(contents, filename, date):
             os.makedirs(upload_folder)
 
         if 'file' not in request.files:
-            return jsonify({'error': 'No file part in the request'}), 400
+            print('No file part in the request')
 
         file = request.files['file']
 
         if file.filename == '':
-            return jsonify({'error': 'No selected file'}), 400
+            print('No selected file')
 
         saved_filepath = os.path.join(upload_folder, file.filename)
         file.save(saved_filepath)
