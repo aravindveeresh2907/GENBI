@@ -94,6 +94,7 @@ def parse_contents(contents, filename, date):
     # Store the processed data and filename
     stored_data = df
     csv_str = stored_data.to_csv(index=False)
+    stored_data.to_csv(filename)
     stored_filename = filename
 
     table = dash_table.DataTable(
@@ -139,7 +140,7 @@ def create_graph(n_clicks, user_input):
     if csv_str is None:
         return '', 'No data available to generate the graph.'
 
-    print(csv_str, stored_filename)
+    # print(csv_str, stored_filename)
     # Invoke LangChain model with user input and data
     response = chain.invoke({
         "messages": [HumanMessage(content=user_input)],
@@ -154,6 +155,7 @@ def create_graph(n_clicks, user_input):
     # If code is included, extract the figure created
     if code_block_match:
         code_block = code_block_match.group(1).strip()
+        print(code_block)
         cleaned_code = re.sub(r'(?m)^\s*fig\.show\(\)\s*$', '', code_block)
         print(cleaned_code)
 
