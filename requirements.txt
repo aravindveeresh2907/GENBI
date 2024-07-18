@@ -37,6 +37,7 @@ MarkupSafe==2.1.5
 multidict==6.0.5
 nest-asyncio==1.6.0
 numpy==1.26.4
+openpyxl
 orjson==3.10.6
 packaging==24.1
 pandas==2.2.2
