@@ -86,7 +86,7 @@ def parse_contents(contents, filename, date):
             return html.Div(['Unsupported file format. Please upload a CSV or Excel file.'])
     except Exception as e:
         print(e)
-        return html.Div(['There was an error processing this file.'])
+        return html.Div(['There was an error processing this file.'e])
 
     # Store the processed data and filename
     stored_data = df
