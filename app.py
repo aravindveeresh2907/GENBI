@@ -80,7 +80,7 @@ def parse_contents(contents, filename, date):
         elif 'xls' in filename or 'xlsx' in filename:
             # Assume that the user uploaded an Excel file
             print(io.BytesIO(decoded))
-            df = pd.read_excel(io.BytesIO(decoded),sheet_name=None)
+            df = pd.read_excel(io.BytesIO(decoded),sheet_name=None, engine='openpyxl')
             combined_df = pd.concat(df.values(), ignore_index=False)
             unnamed_cols = [col for col in combined_df.columns if col.startswith("Unnamed:")]
             df = combined_df.drop(unnamed_cols, axis=1)
