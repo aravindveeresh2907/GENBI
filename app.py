@@ -69,14 +69,22 @@ def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
 
     decoded = base64.b64decode(content_string)
+
+    # Save the uploaded file to the local directory
+    upload_folder = os.path.dirname(__file__)
+    saved_filepath = os.path.join(upload_folder, filename)
+ 
+    with open(saved_filepath, 'wb') as f:
+        f.write(decoded)
+    
     try:
         if 'csv' in filename:
             # Assume that the user uploaded a CSV file
-            df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+            df = pd.read_csv(saved_filepath)
             print("file upload successfully")
         elif 'xls' in filename or 'xlsx' in filename:
             # Assume that the user uploaded an Excel file
-            df = pd.read_excel(io.BytesIO(decoded),sheet_name=None)
+            df = pd.read_excel(saved_filepath,sheet_name=None)
             combined_df = pd.concat(df.values(), ignore_index=False)
             unnamed_cols = [col for col in combined_df.columns if col.startswith("Unnamed:")]
             df = combined_df.drop(unnamed_cols, axis=1)
