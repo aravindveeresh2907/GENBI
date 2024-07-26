@@ -6,7 +6,7 @@ from langchain_groq import ChatGroq
 from dotenv import find_dotenv, load_dotenv
 from flask import Flask
 import pandas as pd
-import os
+import os , sys
 import re
 import base64
 import io
@@ -53,8 +53,13 @@ stored_data = None
 stored_filename = None
 csv_str = None
 
-# Initialize logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # Ensure logs are output to standard output
+    ]
+)                      
 
 # Define the layout of the Dash app
 app.layout = layout.create_layout()
@@ -190,7 +195,7 @@ def create_graph(n_clicks, user_input):
         
     except Exception as e:
         logging.error(f'Error executing generated code: {str(e)}')
-        return "", "", dbc.Toast(f"Please try a valid question or try again", header="something went wrong")
+        return "", "", dbc.Toast(f"Please give it another try, and we’re confident it will work smoothly", header="Please Try Again")
 
 # Main entry point for running the Dash app
 if __name__ == '__main__':
