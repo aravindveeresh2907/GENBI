@@ -1,4 +1,5 @@
 from dash import Dash, dcc, html, Input, Output, State, callback, dash_table
+import dash_bootstrap_components as dbc
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage
 from langchain_groq import ChatGroq
@@ -11,6 +12,7 @@ import base64
 import io
 import layout
 import datetime
+import logging
 
 #initialize flask
 flask_server = Flask(__name__)
@@ -27,7 +29,7 @@ dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-# Initialize LangChain model
+
 model = ChatGroq(
     api_key=GROQ_API_KEY, 
     model="Llama3-70b-8192")
@@ -51,6 +53,9 @@ stored_data = None
 stored_filename = None
 csv_str = None
 
+# Initialize logging
+logging.basicConfig(level=logging.DEBUG)
+
 # Define the layout of the Dash app
 app.layout = layout.create_layout()
 
@@ -68,17 +73,19 @@ def parse_contents(contents, filename, date):
         return html.Div(['No file uploaded yet.'])
 
     content_type, content_string = contents.split(',')
-
     decoded = base64.b64decode(content_string)
 
     try:
         if 'csv' in filename:
+
             # Assume that the user uploaded a CSV file
             print(io.StringIO(decoded.decode('utf-8')))
             df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
             print("file upload successfully")
             df.to_csv('/tmp/'+filename)
+
         elif 'xls' in filename or 'xlsx' in filename:
+
             # Assume that the user uploaded an Excel file
             print(io.BytesIO(decoded))
             df = pd.read_excel(io.BytesIO(decoded),sheet_name=None, engine='openpyxl')
@@ -87,11 +94,13 @@ def parse_contents(contents, filename, date):
             df = combined_df.drop(unnamed_cols, axis=1)
             print("file upload successfully")
             df.to_excel('/tmp/'+filename)
+
         else:
-            return html.Div(['Unsupported file format. Please upload a CSV or Excel file.'])
+            return html.Div(['Unsupported file format. Please upload a CSV or Excel file.']), dbc.Toast("Unsupported file format. Please upload a CSV or Excel file.", header="Error", duration=4000)
+        
     except Exception as e:
-        print(e)
-        return html.Div(['There was an error processing this file.',e])
+        return html.Div(['There was an error processing this file.', str(e)]), dbc.Toast(f"There was an error processing this file: {str(e)}", header="Error", duration=4000)
+
 
     # Store the processed data and filename
     stored_data = df
@@ -123,58 +132,65 @@ def parse_contents(contents, filename, date):
 
     return html.Div([
         html.H5(filename),
-        html.H6(datetime.datetime.fromtimestamp(date)),
-        html.Div('File uploaded and processed successfully.'),
+        # html.H6(datetime.datetime.fromtimestamp(date)),
+        # html.Div('File uploaded and processed successfully.'),
         table
-    ])
+    ]), dbc.Toast("File uploaded and processed successfully.", header="Success", duration=4000)
  
-    
 # Callback to handle graph generation based on user input
 @callback(
-    [Output('my-figure', 'children'), Output('content', 'children')],
+    [Output('my-figure', 'children'), Output('content', 'children'), Output('toast1', 'children')],
     [Input('my-button', 'n_clicks')],
     [State('user-request', 'value')],
     prevent_initial_call=True
 )
+
 def create_graph(n_clicks, user_input):
     global csv_str, stored_filename
 
     if csv_str is None:
         return '', 'No data available to generate the graph.'
-
-    # print(csv_str, stored_filename)
+    
     # Invoke LangChain model with user input and data
-    response = chain.invoke({
-        "messages": [HumanMessage(content=user_input)],
-        "data": csv_str,
-        "stored_filename": stored_filename
-    })
-    result_output = response.content
+    try:
+        response = chain.invoke({
+            "messages": [HumanMessage(content=user_input)],
+            "data": csv_str,
+            "stored_filename": stored_filename
+        })
+        result_output = response.content
 
-    # Extract code block from the response
-    code_block_match = re.search(r'```(?:[Pp]ython)?(.*?)```', result_output, re.DOTALL)
+        # Extract code block from the response
+        code_block_match = re.search(r'```(?:[Pp]ython)?(.*?)```', result_output, re.DOTALL)
 
-    # If code is included, extract the figure created
-    if code_block_match:
-        code_block = code_block_match.group(1).strip()
-        print(code_block)
-        cleaned_code = re.sub(r'(?m)^\s*fig\.show\(\)\s*$', '', code_block)
-        print(cleaned_code)
+        # If code is included, extract the figure created
+        if code_block_match:
+            code_block = code_block_match.group(1).strip()
+            print(code_block)
+            cleaned_code = re.sub(r'(?m)^\s*fig\.show\(\)\s*$', '', code_block)
+            print(cleaned_code)
 
-        # Correct column names in the generated code
-        for col in stored_data.columns:
-            cleaned_code = cleaned_code.replace('Column1', col)
+            # Correct column names in the generated code
+            for col in stored_data.columns:
+                cleaned_code = cleaned_code.replace('Column1', col)
 
-        # Execute the cleaned code to get the Plotly figure
-        local_variables = {}
-        exec(cleaned_code, {}, local_variables)
-        fig = local_variables['fig']
+            # Add imports for Plotly and statsmodels
+            cleaned_code = "import plotly.express as px\nimport statsmodels.api as sm\n" + cleaned_code
+            
+            # Execute the cleaned code to get the Plotly figure
+            local_variables = {}
+            exec(cleaned_code, {}, local_variables)
+            fig = local_variables['fig']
 
-        # Display the Plotly figure
-        graph = dcc.Graph(figure=fig)
-        return graph, ""
-    else:
-        return "", result_output
+            # Display the Plotly figure
+            graph = dcc.Graph(figure=fig)
+            return graph, "", dbc.Toast("Graph generated successfully.", header="Success", duration=4000)
+        else:
+            return "", result_output, dbc.Toast("No valid code block found in the response.", header="Error", duration=4000)
+        
+    except Exception as e:
+        logging.error(f'Error executing generated code: {str(e)}')
+        return "", "", dbc.Toast(f"Please try a valid question or try again", header="something went wrong")
 
 # Main entry point for running the Dash app
 if __name__ == '__main__':

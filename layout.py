@@ -15,9 +15,10 @@ def create_layout():
                 'textAlign': 'center',
             }
         ),
-        html.Div(id='output-data-upload'),
+        dcc.Loading([
+            html.Div(id='output-data-upload'),
+            html.Hr()], type='circle'),
         
-        html.Hr(),
 
         # User input textarea and Generate button
         html.Div([
@@ -38,6 +39,7 @@ def create_layout():
 
         # Loading component for displaying graph and content
         dcc.Loading([
+            html.Div(id='toast1', children=''),
             html.Div(id='my-figure', children=''),
             dcc.Markdown(id='content', children="")
         ], type='cube')
